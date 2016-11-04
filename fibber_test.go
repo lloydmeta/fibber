@@ -19,8 +19,37 @@ func TestFibOf(t *testing.T) {
 	}
 }
 
+func TestFibForEach(t *testing.T) {
+	// Create an empty array that we can fill-in in our callback
+	forEachedGenerated := make([]*big.Int, len(fibSeq))
+	currentIdx := 0
+	ForEach(uint64(len(fibSeq)-1), func(i *big.Int) {
+		forEachedGenerated[currentIdx] = i
+		currentIdx++
+	})
+	for idx, expected := range fibSeq {
+		observed := forEachedGenerated[idx]
+		expectedAsBig := big.NewInt(expected)
+		if expectedAsBig.Cmp(observed) != 0 {
+			err := fmt.Sprintf("Expected %d for Fib(%d) but got %d", expected, idx, observed)
+			t.Error(err)
+		}
+	}
+}
+
 func ExampleOf() {
-	Of(100)
+	fib100 := Of(100)
+	fmt.Printf("Fib 100 is %d", fib100)
+}
+
+func ExampleForEach() {
+	forEachedGenerated := make([]*big.Int, len(fibSeq))
+	currentIdx := 0
+	ForEach(uint64(len(fibSeq)-1), func(i *big.Int) {
+		forEachedGenerated[currentIdx] = i
+		currentIdx++
+	})
+	fmt.Printf("%v", forEachedGenerated)
 }
 
 func BenchmarkFib30(b *testing.B) {
