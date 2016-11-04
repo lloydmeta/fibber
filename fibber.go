@@ -1,17 +1,22 @@
 package fib
 
+import (
+	"math/big"
+)
+
 // Of returns the Fibonacci number at a given index
-func Of(to uint64) uint64 {
+func Of(to uint64) *big.Int {
 	if to == 0 {
-		return 0
+		return big.NewInt(0)
 	} else if to == 1 {
-		return 1
+		return big.NewInt(1)
 	} else {
-		var prev uint64
-		var current uint64 = 1
+		prev := big.NewInt(0)
+		current := big.NewInt(1)
 		var i uint64 = 1
 		for ; i < to; i++ {
-			temp := current + prev
+			temp := big.NewInt(0)
+			temp.Add(prev, current)
 			prev = current
 			current = temp
 		}
