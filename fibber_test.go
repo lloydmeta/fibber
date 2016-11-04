@@ -7,16 +7,16 @@ import (
 )
 
 var fibSeq = []int64{0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811}
+var fibBigInts = make([]*big.Int, len(fibSeq))
+
+func init() {
+	for idx, i := range fibSeq {
+		fibBigInts[idx] = big.NewInt(i)
+	}
+}
 
 func TestFibOf(t *testing.T) {
-	for idx, expected := range fibSeq {
-		observed := Of(uint64(idx))
-		expectedAsBig := big.NewInt(expected)
-		if expectedAsBig.Cmp(observed) != 0 {
-			err := fmt.Sprintf("Expected %d for Fib(%d) but got %d", expected, idx, observed)
-			t.Error(err)
-		}
-	}
+	checkFibAt(t, func(idx int) *big.Int { return Of(uint64(idx)) })
 }
 
 func TestFibForEach(t *testing.T) {
@@ -27,10 +27,14 @@ func TestFibForEach(t *testing.T) {
 		forEachedGenerated[currentIdx] = i
 		currentIdx++
 	})
-	for idx, expected := range fibSeq {
-		observed := forEachedGenerated[idx]
-		expectedAsBig := big.NewInt(expected)
-		if expectedAsBig.Cmp(observed) != 0 {
+	checkFibAt(t, func(idx int) *big.Int { return forEachedGenerated[idx] })
+}
+
+// Helper function to DRY up testing
+func checkFibAt(t *testing.T, getFib func(int) *big.Int) {
+	for idx, expected := range fibBigInts {
+		observed := getFib(idx)
+		if expected.Cmp(observed) != 0 {
 			err := fmt.Sprintf("Expected %d for Fib(%d) but got %d", expected, idx, observed)
 			t.Error(err)
 		}
