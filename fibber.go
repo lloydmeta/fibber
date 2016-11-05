@@ -31,16 +31,19 @@ func ForEach(to uint64, callback func(*big.Int)) {
 	}
 }
 
-type CachedFib struct {
+// Memoed is a thread-safe Fibonacci number provider that has a cache
+type Memoed struct {
 	lock  sync.Mutex
 	cache []*big.Int
 }
 
-func NewCachedFib() *CachedFib {
-	return &CachedFib{sync.Mutex{}, make([]*big.Int, 1000)}
+// NewMemoed creates and returns a new Memoed instance
+func NewMemoed() *Memoed {
+	return &Memoed{sync.Mutex{}, make([]*big.Int, 1000)}
 }
 
-func (self *CachedFib) Of(to uint64) *big.Int {
+// Of returns the Fibonacci number at a given index
+func (self *Memoed) Of(to uint64) *big.Int {
 	toInt := int(to)
 	self.lock.Lock()
 	defer self.lock.Unlock()

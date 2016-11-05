@@ -1,5 +1,6 @@
 package fib
 
+// Our very simple linked list for int
 type intList struct {
 	v    int
 	tail *intList

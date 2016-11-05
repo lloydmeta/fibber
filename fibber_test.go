@@ -31,8 +31,12 @@ func TestFibForEach(t *testing.T) {
 }
 
 func TestCachedFilb(t *testing.T) {
-	fibGen := NewCachedFib()
+	fibGen := NewMemoed()
 	checkFibAt(t, func(idx int) *big.Int { return fibGen.Of(uint64(idx)) })
+	if fib50 := fibGen.Of(50); fib50.Cmp(big.NewInt(12586269025)) != 0 {
+		err := fmt.Sprintf("Fib of 50 was expected to be %v but got %v", 12586269025, fibGen.Of(50))
+		t.Error(err)
+	}
 }
 
 // Helper function to DRY up testing
