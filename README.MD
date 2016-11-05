@@ -2,6 +2,11 @@
 
 Obligatory Fib project to test the waters in Golang.
 
+Provides:
+    - Standard "count up wards" iterative `i`th Fibonacci finder
+    - `ForEach` version that allows you to pass a callback function to work with each fibonacci number generated
+    - `Memoed` threadsafe Fibonacci number generator that, well, memoises.
+
 ## Areas explored
 
 - Library packaging
