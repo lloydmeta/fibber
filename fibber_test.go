@@ -30,11 +30,19 @@ func TestFibForEach(t *testing.T) {
 	checkFibAt(t, func(idx int) *big.Int { return forEachedGenerated[idx] })
 }
 
-func TestCachedFilb(t *testing.T) {
+func TestCachedFib(t *testing.T) {
 	fibGen := NewMemoed()
 	checkFibAt(t, func(idx int) *big.Int { return fibGen.Of(uint64(idx)) })
 	if fib50 := fibGen.Of(50); fib50.Cmp(big.NewInt(12586269025)) != 0 {
 		err := fmt.Sprintf("Fib of 50 was expected to be %v but got %v", 12586269025, fibGen.Of(50))
+		t.Error(err)
+	}
+}
+
+func TestCachedFibBig(t *testing.T) {
+	fibGen := NewMemoed()
+	if fibGen.Of(1000).Cmp(Of(1000)) != 0 {
+		err := fmt.Sprintf("Fib of 1000 was expected to be %v but got %v", Of(1000), fibGen.Of(1000))
 		t.Error(err)
 	}
 }
