@@ -28,7 +28,7 @@ Provides:
 ## Installing and Using
 
 ```bash
-$ go get github.com/lloydmeta/fibber/cmd/fib
+$ go get -u github.com/lloydmeta/fibber/cmd/fib
 
 // Command line mode
 $ fib 10

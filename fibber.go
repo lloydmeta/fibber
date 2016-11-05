@@ -82,7 +82,8 @@ func (self *Memoed) Of(to uint) *big.Int {
 	//  copy the old members to the new cache
 	if len(self.cache) <= toInt {
 		newSlice := make([]*big.Int, toInt*self.cacheGrowthFactor)
-		self.cache = append(newSlice, self.cache...)
+		copy(newSlice, self.cache)
+		self.cache = newSlice
 	}
 
 	// Next, we walk down the cache until we find a cached item, or we reach index 0
@@ -104,5 +105,5 @@ func (self *Memoed) Of(to uint) *big.Int {
 		}
 		self.cache[idx] = big.NewInt(0).Add(self.cache[idx-1], self.cache[idx-2])
 	}
-	return self.cache[to]
+	return self.cache[toInt]
 }

@@ -39,17 +39,22 @@ func TestMemoed(t *testing.T) {
 	}
 }
 
-func TestMemoedbBig(t *testing.T) {
+func TestMemoedCacheExpand(t *testing.T) {
 	fibGen := NewMemoed()
-	if fibGen.Of(1000).Cmp(Of(1000)) != 0 {
-		err := fmt.Sprintf("Fib of 1000 was expected to be %v but got %v", Of(1000), fibGen.Of(1000))
-		t.Error(err)
+	toCheck := []uint{99, 100, 300}
+	for _, idx := range toCheck {
+		expected := Of(idx)
+		observed := fibGen.Of(idx)
+		if expected.Cmp(observed) != 0 {
+			err := fmt.Sprintf("Fib of %d was expected to be %v but got %v", idx, expected, observed)
+			t.Error(err)
+		}
 	}
 }
 
 func TestMemoedConcurrent(t *testing.T) {
-	numRoutines := 1000
-	fibTo := 100
+	numRoutines := 100
+	fibTo := 1000
 	fibGen := NewMemoed()
 	type pair struct {
 		idx uint
@@ -58,10 +63,10 @@ func TestMemoedConcurrent(t *testing.T) {
 	fibChannel := make(chan pair)
 	for i := 0; i < numRoutines; i++ {
 		go func(cID int, c chan<- pair) {
-			for j := fibTo; j >= 0; j-- {
+			for j := 0; j < fibTo; j++ {
 				u := uint(j)
 				g := fibGen.Of(u)
-				c <- pair{uint(u), g}
+				c <- pair{u, g}
 			}
 		}(i, fibChannel)
 	}
