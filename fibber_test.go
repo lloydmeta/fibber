@@ -30,6 +30,11 @@ func TestFibForEach(t *testing.T) {
 	checkFibAt(t, func(idx int) *big.Int { return forEachedGenerated[idx] })
 }
 
+func TestCachedFilb(t *testing.T) {
+	fibGen := NewCachedFib()
+	checkFibAt(t, func(idx int) *big.Int { return fibGen.Of(uint64(idx)) })
+}
+
 // Helper function to DRY up testing
 func checkFibAt(t *testing.T, getFib func(int) *big.Int) {
 	for idx, expected := range fibBigInts {

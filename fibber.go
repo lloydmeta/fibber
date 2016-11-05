@@ -2,6 +2,7 @@ package fib
 
 import (
 	"math/big"
+	"sync"
 )
 
 // Of returns the Fibonacci number at a given index
@@ -28,4 +29,43 @@ func ForEach(to uint64, callback func(*big.Int)) {
 		prev = current
 		current = sum
 	}
+}
+
+type CachedFib struct {
+	lock  sync.Mutex
+	cache []*big.Int
+}
+
+func NewCachedFib() *CachedFib {
+	return &CachedFib{sync.Mutex{}, make([]*big.Int, 1000)}
+}
+
+func (self *CachedFib) Of(to uint64) *big.Int {
+	toInt := int(to)
+	self.lock.Lock()
+	defer self.lock.Unlock()
+	// ensure that `to` is not bigger than current cache
+	if len(self.cache) < int(to) {
+		newSlice := make([]*big.Int, toInt+1)
+		self.cache = append(newSlice, self.cache...)
+	}
+	if cached := self.cache[toInt]; cached != nil {
+		return cached
+	}
+	currentIdx := toInt - 1
+	stack := &intList{toInt, nil} // start off at ToInt
+	for ; currentIdx >= 0 && self.cache[currentIdx] == nil; currentIdx-- {
+		stack = stack.Prepend(currentIdx)
+	}
+	// unwind the stack
+	for stack != nil {
+		idx, tail := stack.Pop()
+		stack = tail
+		if idx <= 1 {
+			self.cache[idx] = big.NewInt(int64(idx))
+			continue
+		}
+		self.cache[idx] = big.NewInt(0).Add(self.cache[idx-1], self.cache[idx-2])
+	}
+	return self.cache[to]
 }
