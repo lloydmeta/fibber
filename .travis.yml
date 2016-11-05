@@ -7,5 +7,5 @@ go:
 
 script:
   - go test -v
-  - go race
+  - go test -race
   - go fmt
