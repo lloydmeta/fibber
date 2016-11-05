@@ -30,7 +30,7 @@ func TestFibForEach(t *testing.T) {
 	checkFibAt(t, func(idx int) *big.Int { return forEachedGenerated[idx] })
 }
 
-func TestCachedFib(t *testing.T) {
+func TestMemoed(t *testing.T) {
 	fibGen := NewMemoed()
 	checkFibAt(t, func(idx int) *big.Int { return fibGen.Of(uint(idx)) })
 	if fib50 := fibGen.Of(50); fib50.Cmp(big.NewInt(12586269025)) != 0 {
@@ -39,12 +39,42 @@ func TestCachedFib(t *testing.T) {
 	}
 }
 
-func TestCachedFibBig(t *testing.T) {
+func TestMemoedbBig(t *testing.T) {
 	fibGen := NewMemoed()
 	if fibGen.Of(1000).Cmp(Of(1000)) != 0 {
 		err := fmt.Sprintf("Fib of 1000 was expected to be %v but got %v", Of(1000), fibGen.Of(1000))
 		t.Error(err)
 	}
+}
+
+func TestMemoedConcurrent(t *testing.T) {
+	numRoutines := 50
+	fibTo := 100
+	fibGen := NewMemoed()
+	type pair struct {
+		idx uint
+		fib *big.Int
+	}
+	fibChannel := make(chan pair)
+	for i := 0; i < numRoutines; i++ {
+		go func(c chan<- pair) {
+			for j := 0; j < fibTo; j++ {
+				u := uint(j)
+				g := fibGen.Of(u)
+				c <- pair{uint(u), g}
+			}
+		}(fibChannel)
+	}
+
+	// numRoutines*fibTo times from the fibChannel and compare observed w/ expected each time
+	for i := 0; i < numRoutines*fibTo; i++ {
+		thePair := <-fibChannel
+		if observed, expected := thePair.fib, Of(thePair.idx); observed.Cmp(expected) != 0 {
+			err := fmt.Sprintf("Expected %d for Fib(%d) but got %d", expected, thePair.idx, observed)
+			t.Error(err)
+		}
+	}
+
 }
 
 // Helper function to DRY up testing
