@@ -6,7 +6,7 @@ import (
 )
 
 // Of returns the Fibonacci number at a given index
-func Of(to uint64) *big.Int {
+func Of(to uint) *big.Int {
 	var toReturn *big.Int
 	ForEach(to, func(i *big.Int) { toReturn = i })
 	return toReturn
@@ -18,10 +18,10 @@ func Of(to uint64) *big.Int {
 //
 // Useful for instance when you want to efficiently create a
 // memoised of fibonacci numbers
-func ForEach(to uint64, callback func(*big.Int)) {
+func ForEach(to uint, callback func(*big.Int)) {
 	prev := big.NewInt(0)
 	current := big.NewInt(1)
-	var i uint64
+	var i uint
 	for ; i <= to; i++ {
 		callback(prev)
 		sum := big.NewInt(0)
@@ -33,19 +33,22 @@ func ForEach(to uint64, callback func(*big.Int)) {
 
 // Memoed is a thread-safe Fibonacci number provider that has a cache
 type Memoed struct {
-	lock  sync.RWMutex
-	cache []*big.Int
+	lock              sync.RWMutex
+	cache             []*big.Int
+	cacheGrowthFactor int
 }
 
-// NewMemoed creates and returns a new Memoed instance
+// NewMemoed creates and returns a new Memoed instance with sensible defaults
+//
+// The cache length is 100 and its growth factor is 3
 func NewMemoed() *Memoed {
-	return &Memoed{sync.RWMutex{}, make([]*big.Int, 1000)}
+	return &Memoed{sync.RWMutex{}, make([]*big.Int, 100), 3}
 }
 
 // Of returns the Fibonacci number at a given index
 //
 // Internally uses the cache Memoed's private cache and is stack-safe and thread-safe
-func (self *Memoed) Of(to uint64) *big.Int {
+func (self *Memoed) Of(to uint) *big.Int {
 	toInt := int(to)
 
 	// First try a read with just a plain Read lock
@@ -75,11 +78,10 @@ func (self *Memoed) Of(to uint64) *big.Int {
 	// because we want to access the ith index of the cache (len of [] must be i + 1
 	// if we want to access or set [i])
 	//
-	// If it is though, create a new slice with twice the length of
-	// `to` (allocation is expensive so we want to minimize this) and
+	// If it is though, create a new cache slice based on the growth factor and
 	//  copy the old members to the new cache
 	if len(self.cache) <= toInt {
-		newSlice := make([]*big.Int, toInt*2)
+		newSlice := make([]*big.Int, toInt*self.cacheGrowthFactor)
 		self.cache = append(newSlice, self.cache...)
 	}
 

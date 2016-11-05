@@ -23,12 +23,12 @@ func main() {
 	}
 }
 
-func parseToUInt(s string) uint64 {
+func parseToUInt(s string) uint {
 	number, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		panic(fmt.Sprintf("Invalid number: %s\n", s))
 	} else {
-		return number
+		return uint(number)
 	}
 }
 
@@ -47,6 +47,6 @@ func interactiveMode() {
 	}
 }
 
-func printFib(of uint64, fib *big.Int) {
+func printFib(of uint, fib *big.Int) {
 	fmt.Printf("Fibonacci[%d] is %d\n", of, fib)
 }
