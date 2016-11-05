@@ -66,8 +66,14 @@ func ExampleForEach() {
 }
 
 func BenchmarkFib30(b *testing.B) {
-	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
 		Of(30)
+	}
+}
+
+func BenchmarkMemoedFib30(b *testing.B) {
+	memoed := NewMemoed()
+	for n := 0; n < b.N; n++ {
+		memoed.Of(30)
 	}
 }

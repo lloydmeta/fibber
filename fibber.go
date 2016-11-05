@@ -33,22 +33,38 @@ func ForEach(to uint64, callback func(*big.Int)) {
 
 // Memoed is a thread-safe Fibonacci number provider that has a cache
 type Memoed struct {
-	lock  sync.Mutex
+	lock  sync.RWMutex
 	cache []*big.Int
 }
 
 // NewMemoed creates and returns a new Memoed instance
 func NewMemoed() *Memoed {
-	return &Memoed{sync.Mutex{}, make([]*big.Int, 1000)}
+	return &Memoed{sync.RWMutex{}, make([]*big.Int, 1000)}
 }
 
 // Of returns the Fibonacci number at a given index
 func (self *Memoed) Of(to uint64) *big.Int {
 	toInt := int(to)
+	// First try a read
+	self.lock.RLock()
+	// Note that this is somewhat repeated below but because of the use of RWLock,
+	// trying to DRY this out doesn't buy much
+	if len(self.cache) >= toInt && self.cache[toInt] != nil {
+		self.lock.RUnlock() // Unlock before returning
+		return self.cache[toInt]
+	}
+	self.lock.RUnlock()
+
+	// Lock for writing
 	self.lock.Lock()
 	defer self.lock.Unlock()
+	// Try another read in case another thread wrote into the cache
+	if len(self.cache) >= toInt && self.cache[toInt] != nil {
+		return self.cache[toInt]
+	}
+
 	// ensure that `to` is not bigger than current cache
-	if len(self.cache) < int(to) {
+	if len(self.cache) < toInt {
 		newSlice := make([]*big.Int, toInt+1)
 		self.cache = append(newSlice, self.cache...)
 	}
