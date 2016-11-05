@@ -62,13 +62,13 @@ func TestMemoedConcurrent(t *testing.T) {
 	}
 	fibChannel := make(chan pair)
 	for i := 0; i < numRoutines; i++ {
-		go func(cID int, c chan<- pair) {
+		go func(c chan<- pair) {
 			for j := 0; j < fibTo; j++ {
 				u := uint(j)
 				g := fibGen.Of(u)
 				c <- pair{u, g}
 			}
-		}(i, fibChannel)
+		}(fibChannel)
 	}
 
 	// numRoutines*fibTo times from the fibChannel and compare observed w/ expected each time
