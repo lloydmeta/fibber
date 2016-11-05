@@ -66,7 +66,6 @@ func (self *Memoed) Of(to uint) *big.Int {
 
 	// Lock for writing
 	self.lock.Lock()
-	defer self.lock.Unlock()
 	// Try another read in case another thread wrote into the cache whilst we
 	// were acquiring the lock.
 	//
@@ -74,7 +73,10 @@ func (self *Memoed) Of(to uint) *big.Int {
 	// In fact, Golang's RLock blocks until all WLocks are released, even within the same
 	// goroutine, so trying to get a RLock here will deadlock.
 	if len(self.cache) > toInt && self.cache[toInt] != nil {
-		return self.cache[toInt]
+		// See above note on avoiding defer
+		existing := self.cache[toInt]
+		self.lock.Unlock()
+		return existing
 	}
 
 	// Ensure that `to` is not bigger than or equal to  current cache
@@ -108,5 +110,8 @@ func (self *Memoed) Of(to uint) *big.Int {
 		}
 		self.cache[idx] = big.NewInt(0).Add(self.cache[idx-1], self.cache[idx-2])
 	}
-	return self.cache[toInt]
+	// See above note on avoiding defer
+	existing := self.cache[toInt]
+	self.lock.Unlock()
+	return existing
 }

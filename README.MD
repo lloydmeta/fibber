@@ -24,7 +24,8 @@ Provides:
     - Implemented simple integer linked list
     - Implemented a memoized Fibonacci generator with private members
 - Sync package (used Mutex, switched to RWLock for Memoed Fib gen)
-    - Use of `defer` for unlocking (see `fib.Memoed`)
+    - Use of `defer` for unlocking (see `fib.Memoed`) to avoid raciness
+    - How to avoid using `defer` for unlocking *and* avoid raciness
 
 ## Installing and Using
 
