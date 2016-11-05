@@ -48,7 +48,7 @@ func TestMemoedbBig(t *testing.T) {
 }
 
 func TestMemoedConcurrent(t *testing.T) {
-	numRoutines := 50
+	numRoutines := 1000
 	fibTo := 100
 	fibGen := NewMemoed()
 	type pair struct {
@@ -57,13 +57,13 @@ func TestMemoedConcurrent(t *testing.T) {
 	}
 	fibChannel := make(chan pair)
 	for i := 0; i < numRoutines; i++ {
-		go func(c chan<- pair) {
-			for j := 0; j < fibTo; j++ {
+		go func(cID int, c chan<- pair) {
+			for j := fibTo; j >= 0; j-- {
 				u := uint(j)
 				g := fibGen.Of(u)
 				c <- pair{uint(u), g}
 			}
-		}(fibChannel)
+		}(i, fibChannel)
 	}
 
 	// numRoutines*fibTo times from the fibChannel and compare observed w/ expected each time
