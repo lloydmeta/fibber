@@ -2,7 +2,6 @@
 
 Obligatory Fib project to test the waters in Golang.
 
-
 ## Areas explored
 
 - Library packaging
