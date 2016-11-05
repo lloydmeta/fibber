@@ -56,14 +56,11 @@ func (self *Memoed) Of(to uint) *big.Int {
 	// Note that this is somewhat repeated below but because of the use of RWLock,
 	// trying to DRY this out doesn't buy much.
 	if len(self.cache) > toInt && self.cache[toInt] != nil {
-		// we need to defer the RUnlock because our return itself is racy
-		// because it accesses self.cache, which is racy. If we didn't
-		// defer the unlock and opted instead to unlock right before returning,
-		//  it's possible for another thread to change the memory address
-		// while we return (e.g. if it tries to get higher, not-yet-generated
-		// Fibonacci index)
-		defer self.lock.RUnlock()
-		return self.cache[toInt]
+		// we put it in a temporary variable instead of returning directly from
+		// the array to avoid having to use defer (to avoid raciness) because defer adds ~70ns
+		existing := self.cache[toInt]
+		self.lock.RUnlock()
+		return existing
 	}
 	self.lock.RUnlock() // Plain read failed, so unlock
 
