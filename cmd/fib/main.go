@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	"github.com/lloydmeta/fibber"
@@ -17,28 +18,35 @@ func main() {
 		interactiveMode()
 	} else {
 		number := parseToUInt(directIdx)
-		printFib(number)
+		fib := fib.Of(number)
+		printFib(number, fib)
 	}
 }
 
-func parseToUInt(s string) uint64 {
+func parseToUInt(s string) uint {
 	number, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		panic(fmt.Sprintf("Invalid number: %s\n", s))
 	} else {
-		return number
+		return uint(number)
 	}
 }
 
 func interactiveMode() {
-	fmt.Println("Fib to which number? ")
-	var input string
-	fmt.Scanln(&input)
-	number := parseToUInt(input)
-	printFib(number)
+	fmt.Println("\n**************** Interactive Mode ********************")
+	fmt.Println(" ctrl+c or ctrl+d or enter any invalid number to exit ")
+	fmt.Println("******************************************************")
+	memoed := fib.NewMemoed()
+	for true {
+		fmt.Println("\nWhich Fibonacci number would you like to know? ")
+		var input string
+		fmt.Scanln(&input)
+		number := parseToUInt(input)
+		fib := memoed.Of(number)
+		printFib(number, fib)
+	}
 }
 
-func printFib(fibOf uint64) {
-	fib := fib.Of(fibOf)
-	fmt.Printf("Fib of %d is %d\n", fibOf, fib)
+func printFib(of uint, fib *big.Int) {
+	fmt.Printf("Fibonacci[%d] is %d\n", of, fib)
 }

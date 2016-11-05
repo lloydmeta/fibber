@@ -4,3 +4,8 @@ go:
   - master
   - 1.7
   - 1.6
+
+script:
+  - go test -v
+  - go test -race
+  - go fmt
