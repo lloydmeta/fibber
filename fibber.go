@@ -42,7 +42,9 @@ type Memoed struct {
 //
 // The cache length is 100 and its growth factor is 3
 func NewMemoed() *Memoed {
-	return &Memoed{sync.RWMutex{}, make([]*big.Int, 100), 3}
+	initCache := make([]*big.Int, 0, 100)
+	initCache = append(initCache, big.NewInt(0), big.NewInt(1))
+	return &Memoed{sync.RWMutex{}, initCache, 3}
 }
 
 // Of returns the Fibonacci number at a given index
@@ -55,7 +57,7 @@ func (self *Memoed) Of(to uint) *big.Int {
 	self.lock.RLock()
 	// Note that this is somewhat repeated below but because of the use of RWLock,
 	// trying to DRY this out doesn't buy much.
-	if len(self.cache) > toInt && self.cache[toInt] != nil {
+	if len(self.cache) > toInt {
 		// we put it in a temporary variable instead of returning directly from
 		// the array to avoid having to use defer (to avoid raciness) because defer adds ~70ns
 		existing := self.cache[toInt]
@@ -72,44 +74,31 @@ func (self *Memoed) Of(to uint) *big.Int {
 	// Note there is no need to acquire a RLock again because we have a WLock.
 	// In fact, Golang's RLock blocks until all WLocks are released, even within the same
 	// goroutine, so trying to get a RLock here will deadlock.
-	if len(self.cache) > toInt && self.cache[toInt] != nil {
+	if len(self.cache) > toInt {
 		// See above note on avoiding defer
 		existing := self.cache[toInt]
 		self.lock.Unlock()
 		return existing
 	}
 
-	// Ensure that `to` is not bigger than or equal to  current cache
+	// Ensure that `to` is not bigger than or equal to  current cache's capacity
 	// because we want to access the ith index of the cache (len of [] must be i + 1
 	// if we want to access or set [i])
 	//
 	// If it is though, create a new cache slice based on the growth factor and
 	//  copy the old members to the new cache
-	if len(self.cache) <= toInt {
-		newSlice := make([]*big.Int, toInt*self.cacheGrowthFactor)
+	if cap(self.cache) <= toInt {
+		newSlice := make([]*big.Int, len(self.cache), toInt*self.cacheGrowthFactor)
 		copy(newSlice, self.cache)
 		self.cache = newSlice
 	}
 
-	// Next, we walk down the cache until we find a cached item, or we reach index 0
-	// For every index that does not have a cached item, we add it into a stack to
-	// so we can fill in the cache later.
-	stack := &intList{toInt, nil} // Start off our stack at ToInt
-	currentIdx := toInt - 1
-	for ; currentIdx >= 0 && self.cache[currentIdx] == nil; currentIdx-- {
-		stack = stack.Prepend(currentIdx)
+	// Now we walk up from the cache length (which is previously max available fib index + 1)
+	// to the Index that we want, pushing newly generated fib numbers into the cache, iteratively
+	for currentIdx := len(self.cache); currentIdx <= toInt; currentIdx++ {
+		self.cache = append(self.cache, big.NewInt(0).Add(self.cache[currentIdx-1], self.cache[currentIdx-2]))
 	}
 
-	// Unwind the stack by popping until tail is nil.
-	for stack != nil {
-		idx, tail := stack.Pop()
-		stack = tail
-		if idx <= 1 {
-			self.cache[idx] = big.NewInt(int64(idx))
-			continue
-		}
-		self.cache[idx] = big.NewInt(0).Add(self.cache[idx-1], self.cache[idx-2])
-	}
 	// See above note on avoiding defer
 	existing := self.cache[toInt]
 	self.lock.Unlock()
