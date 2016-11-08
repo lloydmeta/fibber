@@ -49,7 +49,7 @@ func NewMemoed() *Memoed {
 
 // Of returns the Fibonacci number at a given index
 //
-// Internally uses the cache Memoed's private cache and is stack-safe and thread-safe
+// Internally uses the Memoed's private cache and is stack-safe and thread-safe
 func (self *Memoed) Of(to uint) *big.Int {
 	toInt := int(to)
 
