@@ -108,9 +108,15 @@ func ExampleForEach() {
 	fmt.Printf("%v", forEachedGenerated)
 }
 
-func ExampleMemoed() {
+func ExampleNewMemoed() {
 	memoed := NewMemoed()
 	fmt.Printf("Fib 100 is %d", memoed.Of(100))
+}
+
+func ExampleMemoedOf() {
+	memoed := NewMemoed()
+	fib30 := memoed.Of(30)
+	fmt.Println(fib30)
 }
 
 func BenchmarkFib30(b *testing.B) {
